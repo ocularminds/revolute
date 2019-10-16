@@ -40,11 +40,6 @@ public class ProcessorTest {
         assertEquals(200, response.code());
         assertEquals("Pong", new String(response.body()));
         assertNotNull(server.getApplication());
-
-        //PutMethod put(String path, String body, boolean followRedirect) {
-        //DeleteMethod delete(String path, boolean followRedirect) {
-        //HeadMethod head(String path, boolean followRedirect) {
-        //patch(String path, String body, boolean followRedirect)
     }
 
     @Test
@@ -114,27 +109,64 @@ public class ProcessorTest {
     }
 
     @Test
-    public void testSourceAccountBalanceReduceByAmountAfterSuccessfulTransfer() {
-        List<Object> list = new ArrayList<>();
-        assertTrue(list.isEmpty());
+    public void testSourceAccountBalanceReduceByAmountAfterSuccessfulTransfer() throws HttpClientException {
+        String account1 = createAccount("Balanced Account 1", new BigDecimal("8000"));
+        String account2 = createAccount("Balanced Account 2", new BigDecimal("5590"));
+        BigDecimal amount = new BigDecimal("4753");
+        BigDecimal target = new BigDecimal("3247");
+        HttpResponse response = transfer(account1, account2, amount);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
+        Account account = getAccount(account1);
+        assertNotNull(account);
+        assertTrue(account.getBalance().compareTo(target) == 0);
+
     }
 
     @Test
-    public void testDestinationAccountBalanceIncreaseByAmountAfterSuccessfulTransfer() {
-        List<Object> list = new ArrayList<>();
-        assertTrue(list.isEmpty());
+    public void testDestinationAccountBalanceIncreaseByAmountAfterSuccessfulTransfer() throws HttpClientException {
+        String account1 = createAccount("Balanced Account 1", new BigDecimal("8000"));
+        String account2 = createAccount("Balanced Account 2", new BigDecimal("5590"));
+        BigDecimal amount = new BigDecimal("4753");
+        BigDecimal target = new BigDecimal("10343");
+        HttpResponse response = transfer(account1, account2, amount);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
+        Account account = getAccount(account2);
+        assertNotNull(account);
+        assertTrue(account.getBalance().compareTo(target) == 0);
     }
 
     @Test
-    public void testSourceAccountBalanceRemainsTheSameAfterFailedTransfer() {
-        List<Object> list = new ArrayList<>();
-        assertTrue(list.isEmpty());
+    public void testSourceAccountBalanceRemainsTheSameAfterFailedTransfer() throws HttpClientException {
+        BigDecimal target = new BigDecimal("5590");
+        String account1 = createAccount("Same Balance Account 1", target);
+        String account2 = createAccount("Same Balance Account 2", new BigDecimal("5590"));
+        BigDecimal amount = new BigDecimal("-4753");
+        HttpResponse response = transfer(account1, account2, amount);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.INVALID_AMOUNT, fault.getError());
+        Account account = getAccount(account1);
+        assertNotNull(account);
+        assertTrue(account.getBalance().compareTo(target) == 0);
     }
 
     @Test
-    public void testDestinationAccountBalanceRemainsTheSameAfterFailedTransfer() {
-        List<Object> list = new ArrayList<>();
-        assertTrue(list.isEmpty());
+    public void testDestinationAccountBalanceRemainsTheSameAfterFailedTransfer() throws HttpClientException {
+        BigDecimal target = new BigDecimal("5590");
+        String account1 = createAccount("Same Balance Account 1", target);
+        String account2 = createAccount("Same Balance Account 2", target);
+        BigDecimal amount = new BigDecimal("-4753");
+        HttpResponse response = transfer(account1, account2, amount);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.INVALID_AMOUNT, fault.getError());
+        Account account = getAccount(account2);
+        assertNotNull(account);
+        assertTrue(account.getBalance().compareTo(target) == 0);
     }
 
     private String createAccount(String name, BigDecimal balance) throws HttpClientException {
@@ -145,6 +177,12 @@ public class ProcessorTest {
         System.out.println("server response -> " + new String(response.body()));
         Fault fault = gson.fromJson(new String(response.body()), Fault.class);
         return (String) fault.getData();
+    }
+
+    private Account getAccount(String id) throws HttpClientException {
+        GetMethod request = server.get("/accounts/" + id, false);
+        HttpResponse response = server.execute(request);
+        return gson.fromJson(new String(response.body()), Account.class);
     }
 
     private HttpResponse transfer(String account1, String account2, BigDecimal amount) throws HttpClientException {

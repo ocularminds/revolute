@@ -14,6 +14,8 @@ import java.util.List;
  */
 public interface Repository {
 
+    String createNextLongId();
+
     Fault save(Account account);
 
     String add(Account account);

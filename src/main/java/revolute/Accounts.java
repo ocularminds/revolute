@@ -49,6 +49,13 @@ public class Accounts implements Repository {
     }
 
     @Override
+    public String createNextLongId() {
+        String threadId = String.format("%02d", Thread.currentThread().getId());
+        String atomicId = String.format("%14d", sequence.getAndIncrement());
+        return threadId + atomicId;
+    }
+
+    @Override
     public Fault save(Account account) {
         Fault fault = new Fault("00", "Completed successfully");
         try {

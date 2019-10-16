@@ -15,7 +15,6 @@ public final class FundProcessor implements Processor {
     BigDecimal amount;
 
     public FundProcessor() {
-        ref = new StringBuilder(Long.toString(System.currentTimeMillis())).reverse().substring(0, 10);
         date = SDF.format(new java.util.Date());
     }
 
@@ -27,9 +26,10 @@ public final class FundProcessor implements Processor {
      */
     @Override
     public Fault process(Transfer transfer, Repository repository) {
-        System.out.println("processing transfer");
+        System.out.println("\nprocessing transfer");
         String source = transfer.getSource();
         String target = transfer.getTarget();
+        ref = repository.createNextLongId();
         amount = transfer.getAmount();
         Fault fault = validate(repository, source, target, amount);
         if (fault.isFailed()) {
@@ -37,7 +37,11 @@ public final class FundProcessor implements Processor {
         }
         debit(repository, source, amount);
         credit(repository, target, amount);
-        return new Fault(Fault.SUCCESS_APPROVAL, Fault.error(Fault.SUCCESS_APPROVAL));
+        return new Fault(
+                Fault.SUCCESS_APPROVAL,
+                Fault.error(Fault.SUCCESS_APPROVAL),
+                ref
+        );
     }
 
     private void debit(Repository accounts, String accountId, BigDecimal amount) {

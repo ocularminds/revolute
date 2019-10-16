@@ -99,8 +99,13 @@ public class PerformanceTest {
             overlaps.incrementAndGet();
         }
         running.set(true);
-        String id = accounts.add(new Account(name, BigDecimal.ZERO));
+        BigDecimal balance = new BigDecimal((int)(Math.random() * 90000) +250);
+        BigDecimal amount = balance.multiply(new BigDecimal("0.75"));
+        String account1 = accounts.add(new Account(name+" 01", balance));
+        String account2 = accounts.add(new Account(name+" 02", balance));
+        Transfer t = new Transfer(account1,account2,amount);
+        String ref = (String)new FundProcessor().process(t, accounts).getData();
         running.set(false);
-        return id;
+        return ref;
     }
 }
