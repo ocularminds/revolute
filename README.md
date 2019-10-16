@@ -36,7 +36,7 @@ The application currently supports the following REST APIs:
 * GET /accounts/{id}
 * GET /accounts/{id}/events
 * POST /accounts
-* POST /transfer/ping
+* POST /transfer
 
 ## Assignment Objectives
 Feature 
