@@ -15,11 +15,16 @@ Features
 
 ### Building and running the application
 1. Install Java JDK 8 and optional gradle if not already installed. Running gradlew or ./gradlew can download gradle.
-2. ```cmd
+2. Invoke this on console
+```cmd
 gradle clean build
-3. After build, invoke this command
 ```
+3. After build, invoke this command
+```cmd
 java -jar revolute.jar
+```
+
+and lunch http://localhost:4132
 
 
 ### REST API
