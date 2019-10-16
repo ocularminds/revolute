@@ -57,9 +57,9 @@ public class ProcessorTest {
         System.out.println("transfer request -> "+gson.toJson(transfer));        
         HttpResponse response = server.execute(request);
         System.out.println("response.message -> "+response.message());
-        //assertEquals(200, response.code());
-        //Fault fault = gson.fromJson(new String(response.body()), Fault.class);
-        //assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
     }
 
     @Test

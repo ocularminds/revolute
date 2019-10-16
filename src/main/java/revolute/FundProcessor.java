@@ -15,7 +15,7 @@ public final class FundProcessor implements Processor {
     BigDecimal amount;
 
     public FundProcessor() {
-        ref = new StringBuilder(Long.toString(System.currentTimeMillis())).reverse().substring(0, 19);
+        ref = new StringBuilder(Long.toString(System.currentTimeMillis())).reverse().substring(0, 10);
         date = SDF.format(new java.util.Date());
     }
 
@@ -31,19 +31,17 @@ public final class FundProcessor implements Processor {
         String source = transfer.getSource();
         String target = transfer.getTarget();
         amount = transfer.getAmount();
-        System.out.println("processing transfer from:" + source + " to:" + target + " amount:" + amount);
-
         Fault fault = validate(repository, source, target, amount);
         if (fault.isFailed()) {
             return fault;
         }
-        //debit(repository, source, amount);
-        //credit(repository, target, amount);
+        debit(repository, source, amount);
+        credit(repository, target, amount);
         return new Fault(Fault.SUCCESS_APPROVAL, Fault.error(Fault.SUCCESS_APPROVAL));
     }
 
     private void debit(Repository accounts, String accountId, BigDecimal amount) {
-        System.out.println("debit " + accountId + " with " + amount);
+        System.out.println("debit " + accountId + " amount " + amount);
         Account account = accounts.get(accountId);
         BigDecimal balance = account.getBalance().subtract(amount);
         account.setBalance(balance);
@@ -52,7 +50,7 @@ public final class FundProcessor implements Processor {
     }
 
     private void credit(Repository accounts, String accountId, BigDecimal amount) {
-        System.out.println("credit " + accountId + " with " + amount);
+        System.out.println("credit " + accountId + " amount " + amount);
         Account account = accounts.get(accountId);
         BigDecimal balance = account.getBalance().add(amount);
         account.setBalance(balance);
