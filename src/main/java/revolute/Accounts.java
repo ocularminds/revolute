@@ -17,7 +17,7 @@ import static revolute.ServiceRoutes.LOG;
  */
 public class Accounts implements Repository {
 
-    // Just a singleton for simplicity
+    // In-Memory account database. Just a singleton for simplicity
     private Map<String, Account> accounts = Collections.synchronizedMap(new HashMap<>());
 
     /**
@@ -60,8 +60,8 @@ public class Accounts implements Repository {
         Fault fault = new Fault("00", "Completed successfully");
         try {
             if (account.getId() == null || account.getId().trim().isEmpty()) {
-               String id = add(account);
-               fault.setData(id);
+                String id = add(account);
+                fault.setData(id);
             } else {
                 update(account);
             }
@@ -114,5 +114,4 @@ public class Accounts implements Repository {
         trans.add(event);
         transactions.put(accountId, trans);
     }
-
 }

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import spark.Spark;
 
 /**
+ * Concrete class for endpoint paths
  *
  * @author Babatope Festus
  */
@@ -52,11 +53,12 @@ public class ServiceRoutes implements Routes {
         Spark.post("/transfer", (req, res) -> {
             res.type(JSON);
             res.status(200);
-            return gson.toJson(transfer(gson.fromJson(req.body(), Transfer.class)));
+            return gson.toJson(transfer(req.body()));
         });
     }
 
-    public Fault transfer(Transfer transfer) {
+    private Fault transfer(String json) {
+        Transfer transfer = gson.fromJson(json, Transfer.class);
         return new FundProcessor().process(transfer, accounts);
     }
 }

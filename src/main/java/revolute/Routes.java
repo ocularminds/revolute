@@ -6,10 +6,14 @@
 package revolute;
 
 /**
+ * Routes interface defines the endpoints contra for managing many endpoints
  *
- * @author Dev.io
+ * @author Festus Babatope
  */
 public interface Routes {
 
+    /**
+     * Here all REST paths are defined and activated by the embedded container
+     */
     void define();
 }

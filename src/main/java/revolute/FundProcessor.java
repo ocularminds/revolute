@@ -17,13 +17,7 @@ public final class FundProcessor implements Processor {
     public FundProcessor() {
         date = SDF.format(new java.util.Date());
     }
-
-    /**
-     *
-     * @param transfer
-     * @param repository
-     * @return
-     */
+    
     @Override
     public Fault process(Transfer transfer, Repository repository) {
         System.out.println("\nprocessing transfer");
