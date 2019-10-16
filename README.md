@@ -1,28 +1,34 @@
-# resolute
+# Java Project - resolute
 Fund transfer restful API.
 
+## Project Background
+The Funds Transfer Service (FTS) is a REST application for transfering funds between accounts. 
+The service provides two distinct interfaces. One is an account interface, used by dozens of client systems 
+to create customer account. The other is a transfer interface invoked by multiple systems and services on behalf of end users.
+
+Features
+1. It is simple and to the point with no authentication.
+2. It is a multi-thread the API ready to be invoked by multiple systems and services on behalf of end users.
+4. Total fat jar is stil a tiny 2Mb with no heavy frameworks.
+5. The datastore run in-memorys using Map collections.
+6. The final binary requires no installation or configurations.
+
+You can run the included run-ws.sh which launches the server and demonstrates a simple client hitting the REST endpoint.
+
+### REST API
+
+The application currently supports the following REST APIs:
+* GET /
+* GET /ping
+* GET /accounts
+* GET /accounts/{id}
+* GET /accounts/{id}/events
+* POST /accounts
+* POST /transfer/ping
+
+## Assignment Objectives
 Feature 
 0. Keep it simple
-1. Fund transfer
-2. Lightweight
-3. Solve concurrent issue
-4. Performance Test
-5. TDD Approach
-6. Clean
-7. Send to GitHub/Bitbucket
-
-Design and implement a RESTful API (including data model and the backing implementation) for
-money transfers between accounts.
-Explicit requirements:
-1. You can use Java or Kotlin.
-2. Keep it simple and to the point (e.g. no need to implement any authentication).
-3. Assume the API is invoked by multiple systems and services on behalf of end users.
-4. You can use frameworks/libraries if you like (except Spring), but don't forget about
-requirement #2 and keep it simple and avoid heavy frameworks.
-5. The datastore should run in-memory for the sake of this test.
-6. The final result should be executable as a standalone program (should not require a
-pre-installed container/server).
-7. Demonstrate with tests that the API works as expected.
-Implicit requirements:
-1. The code produced by you is expected to be of high quality.
-2. There are no detailed requirements, use common sense.
+1. Lightweight Fund transfer API
+2. Solve concurrent issue
+4. TDD Approach with high quality code
