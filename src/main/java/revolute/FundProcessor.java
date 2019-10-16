@@ -75,7 +75,7 @@ public final class FundProcessor implements Processor {
             return new Fault(Fault.INVALID_ACCT_NO, Fault.error(Fault.INVALID_ACCT_NO));
         }
 
-        if (amount == null || amount.longValue() == 0) {
+        if (amount == null || amount.longValue() == 0 || amount.compareTo(BigDecimal.ZERO) == -1) {
             return new Fault(Fault.INVALID_AMOUNT, Fault.error(Fault.INVALID_AMOUNT));
         }
 

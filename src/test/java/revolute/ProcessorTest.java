@@ -50,51 +50,67 @@ public class ProcessorTest {
     @Test
     public void testTransferSuccessful() throws HttpClientException {
         String account1 = createAccount("Test Account 1", new BigDecimal("70000"));
-        String account2 = createAccount("Test Account 1", new BigDecimal("50000"));
-
-        Transfer transfer = new Transfer(account1, account2, new BigDecimal("23000"));
-        PostMethod request = server.post("/transfer", gson.toJson(transfer), true);
-        System.out.println("transfer request -> "+gson.toJson(transfer));        
-        HttpResponse response = server.execute(request);
-        System.out.println("response.message -> "+response.message());
+        String account2 = createAccount("Test Account 2", new BigDecimal("50000"));
+        HttpResponse response = transfer(account1, account2, new BigDecimal("23000"));
+        System.out.println("response.message -> " + response.message());
         assertEquals(200, response.code());
         Fault fault = gson.fromJson(new String(response.body()), Fault.class);
         assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
     }
 
     @Test
-    public void testTransferFailedWith404IfSourceAccountIsUnknown() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTransferFailedWhenSourceAccountIsUnknown() throws HttpClientException {
+        String account1 = "10000000000";
+        String account2 = "210000000000";
+        HttpResponse response = transfer(account1, account2, BigDecimal.TEN);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.NO_ACCOUNT_FOUND, fault.getError());
     }
 
     @Test
-    public void testTransferFailedWith404IfDistinationAccountIsUnknown() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTransferFailedWhenDistinationAccountIsUnknown() throws HttpClientException {
+        String account1 = "10000000000";
+        String account2 = "210000000000";
+        HttpResponse response = transfer(account1, account2, BigDecimal.TEN);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.NO_ACCOUNT_FOUND, fault.getError());
     }
 
     @Test
-    public void testTransferFailedWithInsufficientAmountWhenSourceBalanceIsLessThanTransferAmount() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTransferFailedWithInsufficientAmountWhenSourceBalanceIsLessThanTransferAmount() throws HttpClientException {
+        String account1 = createAccount("Test Account 1", new BigDecimal("7000"));
+        String account2 = createAccount("Test Account 2", new BigDecimal("5000"));
+        HttpResponse response = transfer(account1, account2, new BigDecimal("12500"));
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.INSUFFICIENT_FUNDS, fault.getError());
     }
 
     @Test
-    public void testTransferFailedWithInvalidAmountWhenAmountIsNegative() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTransferFailedWithInvalidAmountWhenAmountIsNegative() throws HttpClientException {
+        String account1 = createAccount("Test Account 1", new BigDecimal("800"));
+        String account2 = createAccount("Test Account 2", new BigDecimal("590"));
+        BigDecimal amount = new BigDecimal("-12").multiply(BigDecimal.TEN);
+        HttpResponse response = transfer(account1, account2, amount);
+        assertEquals(200, response.code());
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        assertEquals(Fault.INVALID_AMOUNT, fault.getError());
     }
 
     @Test
-    public void testTransferFailedWithInvalidAmountWhenAmountIsNotANumber() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
-    }
-
-    @Test
-    public void testTotalSuccessTransferForAccountNumber() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
-    }
-
-    @Test
-    public void testTotalFailedTransferForAccountNumber() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTotalSuccessTransferForAccountNumber() throws HttpClientException {
+        String account1 = createAccount("Volume Account 1", new BigDecimal("70000"));
+        String account2 = createAccount("Volume Account 2", new BigDecimal("50000"));
+        for (int x = 0; x < 20; x++) {
+            transfer(account1, account2, new BigDecimal("350"));
+        }
+        GetMethod request = server.get("/accounts/" + account1 + "/events", false);
+        HttpResponse response = server.execute(request);
+        assertEquals(200, response.code());
+        List<String> records = gson.fromJson(new String(response.body()), List.class);
+        assertEquals(20, records.size());
     }
 
     @Test
@@ -129,5 +145,13 @@ public class ProcessorTest {
         System.out.println("server response -> " + new String(response.body()));
         Fault fault = gson.fromJson(new String(response.body()), Fault.class);
         return (String) fault.getData();
+    }
+
+    private HttpResponse transfer(String account1, String account2, BigDecimal amount) throws HttpClientException {
+        Transfer transfer = new Transfer(account1, account2, amount);
+        PostMethod request = server.post("/transfer", gson.toJson(transfer), true);
+        System.out.println("transfer request -> " + gson.toJson(transfer));
+        HttpResponse response = server.execute(request);
+        return response;
     }
 }
