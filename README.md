@@ -1,4 +1,4 @@
-# Java Project - resolute
+# Java Project - Revolute
 Fund transfer restful API.
 
 ## Project Background
@@ -13,7 +13,14 @@ Features
 5. The datastore run in-memorys using Map collections.
 6. The final binary requires no installation or configurations.
 
-You can run the included run-ws.sh which launches the server and demonstrates a simple client hitting the REST endpoint.
+### Building and running the application
+1. Install Java JDK 8 and optional gradle if not already installed. Running gradlew or ./gradlew can download gradle.
+2. ```cmd
+gradle clean build
+3. After build, invoke this command
+```
+java -jar revolute.jar
+
 
 ### REST API
 
