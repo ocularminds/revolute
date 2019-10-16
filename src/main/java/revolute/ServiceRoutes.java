@@ -1,7 +1,6 @@
 package revolute;
 
 import com.google.gson.Gson;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import spark.Spark;
 
@@ -24,18 +23,18 @@ public class ServiceRoutes implements Routes {
         gson = new Gson();
         accounts = repository;
     }
-    
+
     @Override
     public void define() {
 
         Spark.get("/", (req, res) -> "Ready. Healthy");
-        
+
         Spark.get("/ping", (req, res) -> "Pong");
 
         Spark.post("/accounts", (req, res) -> {
             res.type(JSON);
             res.status(200);
-            return gson.toJson(save(gson.fromJson(req.body(), Account.class)));
+            return gson.toJson(accounts.save(gson.fromJson(req.body(), Account.class)));
         });
 
         Spark.get("/accounts", (req, res) -> {
@@ -46,7 +45,7 @@ public class ServiceRoutes implements Routes {
             return gson.toJson(accounts.get(req.params("id")));
         });
 
-        Spark.get("/accounts/:id/transactions", (req, res) -> {
+        Spark.get("/accounts/:id/events", (req, res) -> {
             return gson.toJson(accounts.transactions(req.params("id")));
         });
 
@@ -57,22 +56,7 @@ public class ServiceRoutes implements Routes {
         });
     }
 
-    public Fault save(Account account) {
-        Fault fault = new Fault("00", "Completed successfully");
-        try {
-            if (account.getId() == null || account.getId().trim().isEmpty()) {
-                accounts.add(account);
-            } else {
-                accounts.update(account);
-            }
-        } catch (Exception ex) {
-            fault = new Fault("21", "error creating record");
-            LOG.log(Level.SEVERE, "could not create record ", ex);
-        }
-        return fault;
-    }
-
     public Fault transfer(Transfer transfer) {
-        return new FundProcessor(accounts).process(transfer);
+        return new FundProcessor().process(transfer, accounts);
     }
 }

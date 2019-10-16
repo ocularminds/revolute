@@ -3,8 +3,10 @@ package revolute;
 import com.despegar.http.client.GetMethod;
 import com.despegar.http.client.HttpClientException;
 import com.despegar.http.client.HttpResponse;
+import com.despegar.http.client.PostMethod;
 import com.despegar.sparkjava.test.SparkServer;
 import com.google.gson.Gson;
+import java.math.BigDecimal;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import java.util.List;
@@ -20,7 +22,7 @@ public class ProcessorTest {
 
     @ClassRule
     public static SparkServer<WebServer> server = new SparkServer<>(WebServer.class, new Integer(PORT));
-    
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         Spark.stop();
@@ -39,16 +41,25 @@ public class ProcessorTest {
         assertEquals("Pong", new String(response.body()));
         assertNotNull(server.getApplication());
 
-        //PostMethod post(String path, String body, boolean followRedirect)
         //PutMethod put(String path, String body, boolean followRedirect) {
         //DeleteMethod delete(String path, boolean followRedirect) {
         //HeadMethod head(String path, boolean followRedirect) {
         //patch(String path, String body, boolean followRedirect)
     }
-    
+
     @Test
-    public void testTransferSuccessful() {
-        //assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    public void testTransferSuccessful() throws HttpClientException {
+        String account1 = createAccount("Test Account 1", new BigDecimal("70000"));
+        String account2 = createAccount("Test Account 1", new BigDecimal("50000"));
+
+        Transfer transfer = new Transfer(account1, account2, new BigDecimal("23000"));
+        PostMethod request = server.post("/transfer", gson.toJson(transfer), true);
+        System.out.println("transfer request -> "+gson.toJson(transfer));        
+        HttpResponse response = server.execute(request);
+        System.out.println("response.message -> "+response.message());
+        //assertEquals(200, response.code());
+        //Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        //assertEquals(Fault.SUCCESS_APPROVAL, fault.getError());
     }
 
     @Test
@@ -108,5 +119,15 @@ public class ProcessorTest {
     public void testDestinationAccountBalanceRemainsTheSameAfterFailedTransfer() {
         List<Object> list = new ArrayList<>();
         assertTrue(list.isEmpty());
+    }
+
+    private String createAccount(String name, BigDecimal balance) throws HttpClientException {
+        Account account = new Account(name, balance);
+        PostMethod request = server.post("/accounts", gson.toJson(account), true);
+        System.out.println("request ->" + gson.toJson(account));
+        HttpResponse response = server.execute(request);
+        System.out.println("server response -> " + new String(response.body()));
+        Fault fault = gson.fromJson(new String(response.body()), Fault.class);
+        return (String) fault.getData();
     }
 }

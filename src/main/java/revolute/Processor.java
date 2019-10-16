@@ -13,14 +13,14 @@ public interface Processor {
     
     static final String SPACE = " ";
 
-    Fault process(Transfer transfer);
+    Fault process(Transfer transfer, Repository repository);
 
     default boolean isNotaNumber(String number) {
         try {
             Long.parseLong(number);
-            return true;
-        } catch (NumberFormatException ex) {
             return false;
+        } catch (NumberFormatException ex) {
+            return true;
         }
     }
 }

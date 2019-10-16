@@ -10,16 +10,46 @@ repositories {
 dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version:'2.7'
     compile group: 'com.sparkjava', name: 'spark-core', version:'2.6.0'
-    implementation 'com.google.guava:guava:28.0-jre'
+    //implementation 'com.google.guava:guava:28.0-jre'
     testCompile 'com.despegar:spark-test:1.1.8'
     testImplementation 'junit:junit:4.12'
 }
 
 application {
-    mainClassName = 'com.resolute.ft.App'
+    mainClassName = 'revolute.Revolute'
+}
+jar.enabled = true
+jar {
+  archiveName  = 'revolute.jar'
+  manifest {
+      attributes "Main-Class": "revolute.Revolute"
+  }
+ from(configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }) {
+      // remove all signature files
+      exclude "META-INF/*.SF"
+      exclude "META-INF/*.DSA"
+      exclude "META-INF/*.RSA"
+  }
+}
+clean.doFirst {
+    delete "${rootDir}"+File.separator+"target"+File.separator
+    delete "${rootDir}"+File.separator+"build"+File.separator
+    delete "${rootDir}"+File.separator+"logs"+File.separator
 }
 
-test{
+task copyJar(){
+    dependsOn build
+    println 'Copying jar file to project root directory...'
+    doLast{
+        copy{
+            from new File("${project.buildDir}/libs")
+            into new File("${project.projectDir}")
+            rename { String fileName -> fileName.replace("revolute", "revolute")}
+        }
+    }
+}
+
+test {
     ignoreFailures = true
     testLogging.showStandardStreams = true
     testLogging {
@@ -27,3 +57,4 @@ test{
         info.events = ["failed", "skipped"]
     }
 }
+build.finalizedBy copyJar

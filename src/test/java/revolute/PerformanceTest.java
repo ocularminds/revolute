@@ -76,15 +76,14 @@ public class PerformanceTest {
         AtomicBoolean running = new AtomicBoolean();
         AtomicInteger overlaps = new AtomicInteger();
         ExecutorService service = Executors.newFixedThreadPool(threads);
-        Collection<Future<Integer>> futures = new ArrayList<>(threads);
+        Collection<Future<String>> futures = new ArrayList<>(threads);
         for (int t = 0; t < threads; ++t) {
-            final String account = String.format("Transfer #%d", t);
-            final Integer id = t + 1;
-            futures.add(service.submit(() -> transfer(running, overlaps, latch, accounts, account, id)));
+            final String name = String.format("Transfer #%d", t);
+            futures.add(service.submit(() -> transfer(running, overlaps, latch, accounts, name)));
         }
         latch.countDown();
-        Set<Integer> ids = new HashSet<>();
-        for (Future<Integer> f : futures) {
+        Set<String> ids = new HashSet<>();
+        for (Future<String> f : futures) {
             ids.add(f.get());
         }
         Map<String, Integer> facts = new HashMap<>();
@@ -93,14 +92,14 @@ public class PerformanceTest {
         return facts;
     }
 
-    private Integer transfer(AtomicBoolean running, AtomicInteger overlaps,
-            CountDownLatch latch, Accounts accounts, String account, Integer id) throws InterruptedException {
+    private String transfer(AtomicBoolean running, AtomicInteger overlaps,
+            CountDownLatch latch, Accounts accounts, String name) throws InterruptedException {
         latch.await();
         if (running.get()) {
             overlaps.incrementAndGet();
         }
         running.set(true);
-        accounts.add(new Account(id.toString(), account, BigDecimal.ZERO));
+        String id = accounts.add(new Account(name, BigDecimal.ZERO));
         running.set(false);
         return id;
     }

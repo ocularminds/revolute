@@ -14,7 +14,9 @@ import java.util.List;
  */
 public interface Repository {
 
-    void add(Account account);
+    Fault save(Account account);
+
+    String add(Account account);
 
     void trace(String accountId, String event);
 

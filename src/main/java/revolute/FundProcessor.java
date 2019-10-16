@@ -9,61 +9,65 @@ import java.text.SimpleDateFormat;
  */
 public final class FundProcessor implements Processor {
 
-    Repository accounts;
     static final SimpleDateFormat SDF = new SimpleDateFormat("dd-MM-yy hh:mm");
     String ref;
     String date;
     BigDecimal amount;
 
     public FundProcessor() {
-        this(Accounts.getInstance());
+        ref = new StringBuilder(Long.toString(System.currentTimeMillis())).reverse().substring(0, 19);
+        date = SDF.format(new java.util.Date());
     }
 
-    public FundProcessor(Repository repository) {
-        this.accounts = repository;
-    }
-
+    /**
+     *
+     * @param transfer
+     * @param repository
+     * @return
+     */
     @Override
-    public Fault process(final Transfer transfer) {
+    public Fault process(Transfer transfer, Repository repository) {
+        System.out.println("processing transfer");
         String source = transfer.getSource();
         String target = transfer.getTarget();
         amount = transfer.getAmount();
+        System.out.println("processing transfer from:" + source + " to:" + target + " amount:" + amount);
 
-        Fault fault = validate(source, target, amount);
+        Fault fault = validate(repository, source, target, amount);
         if (fault.isFailed()) {
             return fault;
         }
-
-        ref = new StringBuilder(Long.toString(System.currentTimeMillis())).reverse().substring(0, 19);
-        date = SDF.format(new java.util.Date());
-        debit(source, amount);
-        credit(target, amount);
+        //debit(repository, source, amount);
+        //credit(repository, target, amount);
         return new Fault(Fault.SUCCESS_APPROVAL, Fault.error(Fault.SUCCESS_APPROVAL));
     }
 
-    private void debit(String accountId, BigDecimal amount) {
+    private void debit(Repository accounts, String accountId, BigDecimal amount) {
+        System.out.println("debit " + accountId + " with " + amount);
         Account account = accounts.get(accountId);
         BigDecimal balance = account.getBalance().subtract(amount);
         account.setBalance(balance);
         accounts.update(account);
-        trace(accountId, "Fund transfer", balance);
+        trace(accounts, accountId, "Fund transfer", balance);
     }
 
-    private void credit(String accountId, BigDecimal amount) {
+    private void credit(Repository accounts, String accountId, BigDecimal amount) {
+        System.out.println("credit " + accountId + " with " + amount);
         Account account = accounts.get(accountId);
         BigDecimal balance = account.getBalance().add(amount);
         account.setBalance(balance);
         accounts.update(account);
-        trace(accountId, "Fund received", balance);
+        trace(accounts, accountId, "Fund received", balance);
     }
 
-    private void trace(String account, String event, BigDecimal balance) {
+    private void trace(Repository accounts, String account, String event, BigDecimal balance) {
         String pattern = "%s %s %6.2f %6.2f %s";
         String l = String.format(pattern, ref, event, amount, balance, date);
+        System.out.println(l);
         accounts.trace(account, l);
     }
 
-    private Fault validate(String source, String target, BigDecimal amount) {
+    private Fault validate(Repository accounts, String source, String target, BigDecimal amount) {
 
         if (source == null || isNotaNumber(source)) {
             return new Fault(Fault.INVALID_ACCT_NO, Fault.error(Fault.INVALID_ACCT_NO));

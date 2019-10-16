@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import static revolute.ServiceRoutes.LOG;
 
 /**
  * Singleton class for In-Memory account database
@@ -25,6 +28,7 @@ public class Accounts implements Repository {
      * aggregate with other performance metrics {@link #ping()}
      */
     private Map<String, List<String>> transactions = Collections.synchronizedMap(new HashMap<>());
+    private static AtomicLong sequence = new AtomicLong(1);
 
     private Accounts() {
     }
@@ -38,9 +42,35 @@ public class Accounts implements Repository {
         return Instance.INSTANCE;
     }
 
+    public String createNextId() {
+        String threadId = String.format("%02d", Thread.currentThread().getId());
+        String atomicId = String.format("%08d", sequence.getAndIncrement());
+        return threadId + atomicId;
+    }
+
     @Override
-    public void add(Account account) {
-        accounts.put(account.getId(), account);
+    public Fault save(Account account) {
+        Fault fault = new Fault("00", "Completed successfully");
+        try {
+            if (account.getId() == null || account.getId().trim().isEmpty()) {
+               String id = add(account);
+               fault.setData(id);
+            } else {
+                update(account);
+            }
+        } catch (Exception ex) {
+            fault = new Fault("21", "error creating record");
+            LOG.log(Level.SEVERE, "could not create record ", ex);
+        }
+        return fault;
+    }
+
+    @Override
+    public String add(Account account) {
+        String id = createNextId();
+        account.setId(id);
+        accounts.put(id, account);
+        return id;
     }
 
     @Override
